@@ -916,11 +916,146 @@ input[type="range"] {
 }
 .btn-close-modal:hover { background: rgba(255, 255, 255, 0.15); color: #fff; }
 
+/* Modal Nav Tabs & Simple Summary */
+.modal-nav-tabs {
+  display: flex;
+  background: rgba(0, 0, 0, 0.25);
+  border-bottom: 1px solid var(--border-subtle);
+  padding: 0 28px;
+  gap: 8px;
+}
+
+.tab-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 14px 18px;
+  background: transparent;
+  border: none;
+  border-bottom: 2px solid transparent;
+  color: var(--text-secondary);
+  font-family: var(--font-family);
+  font-size: 0.88rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: var(--transition);
+}
+
+.tab-btn:hover {
+  color: var(--text-main);
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.tab-btn.active {
+  color: var(--primary);
+  border-bottom-color: var(--primary);
+  background: rgba(99, 102, 241, 0.08);
+}
+
 .modal-body {
   padding: 24px 28px;
   display: flex;
   flex-direction: column;
   gap: 20px;
+}
+
+.tab-content {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.summary-highlight-box {
+  background: linear-gradient(135deg, rgba(99, 102, 241, 0.12) 0%, rgba(30, 41, 65, 0.5) 100%);
+  border: 1px solid rgba(99, 102, 241, 0.3);
+  border-radius: var(--radius-lg);
+  padding: 20px;
+}
+
+.highlight-title {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+.highlight-icon {
+  font-size: 1.25rem;
+}
+
+.highlight-title h4 {
+  font-size: 1.05rem;
+  font-weight: 800;
+  color: #a5b4fc;
+}
+
+.summary-text-simple {
+  font-size: 0.95rem;
+  line-height: 1.6;
+  color: var(--text-main);
+  font-weight: 500;
+}
+
+.summary-cards-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 14px;
+}
+
+.summary-mini-card {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  padding: 14px 16px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.mini-card-icon {
+  width: 36px;
+  height: 36px;
+  border-radius: var(--radius-md);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.1rem;
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.mini-card-content {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.mini-card-label {
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  text-transform: uppercase;
+}
+
+.mini-card-val {
+  font-size: 0.88rem;
+  font-weight: 700;
+  color: var(--text-main);
+}
+
+.seller-tip-box {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  background: rgba(245, 158, 11, 0.08);
+  border: 1px solid rgba(245, 158, 11, 0.25);
+  padding: 16px;
+  border-radius: var(--radius-md);
+}
+
+.seller-tip-box p {
+  font-size: 0.85rem;
+  color: #fde68a;
+  line-height: 1.5;
 }
 
 .modal-price-box {

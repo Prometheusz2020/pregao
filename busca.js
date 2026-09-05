@@ -1,3 +1,17 @@
+function formatarLinkPNCP(item) {
+  if (item.numeroControlePNCP) {
+    const match = item.numeroControlePNCP.match(/^(\d{14})-(\d+)-(\d+)\/(\d{4})$/);
+    if (match) {
+      const cnpj = match[1];
+      const sequencial = parseInt(match[3], 10);
+      const ano = match[4];
+      return `https://pncp.gov.br/app/editais/${cnpj}/${ano}/${sequencial}`;
+    }
+    return `https://pncp.gov.br/app/editais?q=${encodeURIComponent(item.numeroControlePNCP)}`;
+  }
+  return 'https://pncp.gov.br/app/editais';
+}
+
 async function buscarOportunidades(termoServico = '', valorMaximo = 50000) {
   // Gera a data de hoje no padrão AAAAMMDD
   const hoje = new Date();
@@ -46,7 +60,7 @@ async function buscarOportunidades(termoServico = '', valorMaximo = 50000) {
       orgao: item.orgaoEntidade?.razaoSocial || 'Não informado',
       objeto: item.objetoCompra,
       valor: `R$ ${Number(item.valorTotalEstimado).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`,
-      linkPNCP: `https://pncp.gov.br/app/editais/${item.numeroControlePNCP}`
+      linkPNCP: formatarLinkPNCP(item)
     }));
   } catch (error) {
     console.error('Falha ao consultar API do PNCP:', error.message);

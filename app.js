@@ -1,7 +1,8 @@
 /**
  * PNCP Scraper & Dashboard - Frontend Application Logic
  * Integrates live data fetching, state management, KPI calculations,
- * reactive filtering, UI rendering, modal views, and data exports.
+ * reactive filtering, UI rendering, modal views, simplified summaries,
+ * fixed PNCP link parsers, and data exports.
  */
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -62,9 +63,21 @@ document.addEventListener('DOMContentLoaded', () => {
     btnExportCSV: document.getElementById('btnExportCSV'),
     btnExportJSON: document.getElementById('btnExportJSON'),
 
-    // Modal
+    // Modal & Tabs
     detailsModal: document.getElementById('detailsModal'),
     btnCloseModal: document.getElementById('btnCloseModal'),
+    btnTabSimples: document.getElementById('btnTabSimples'),
+    btnTabTecnica: document.getElementById('btnTabTecnica'),
+    tabSimples: document.getElementById('tabSimples'),
+    tabTecnica: document.getElementById('tabTecnica'),
+
+    // Modal Content Fields (Simples)
+    modalResumoExplicativo: document.getElementById('modalResumoExplicativo'),
+    modalFinalidadeSimples: document.getElementById('modalFinalidadeSimples'),
+    modalValorSimples: document.getElementById('modalValorSimples'),
+    modalExplicacaoModalidade: document.getElementById('modalExplicacaoModalidade'),
+
+    // Modal Content Fields (Técnica)
     modalBadgeModalidade: document.getElementById('modalBadgeModalidade'),
     modalOrgao: document.getElementById('modalOrgao'),
     modalValor: document.getElementById('modalValor'),
@@ -169,26 +182,15 @@ document.addEventListener('DOMContentLoaded', () => {
       const objeto = (item.objetoCompra || '').toLowerCase();
       const codigoMod = String(item.modalidadeId || item.codigoModalidadeContratacao || '');
 
-      // Valor filter (skip filter if maxVal >= 1000000)
       const atendeValor = maxVal >= 1000000 ? true : (valor <= maxVal);
-
-      // Search term filter
-      const atendeTermo = term
-        ? (orgao.includes(term) || objeto.includes(term))
-        : true;
-
-      // Modalidade filter
-      const atendeModalidade = modSelect === 'all'
-        ? true
-        : (codigoMod === modSelect || !codigoMod);
+      const atendeTermo = term ? (orgao.includes(term) || objeto.includes(term)) : true;
+      const atendeModalidade = modSelect === 'all' ? true : (codigoMod === modSelect || !codigoMod);
 
       return atendeValor && atendeTermo && atendeModalidade;
     });
 
-    // Sorting
     sortItems(state.filteredItems, state.filters.orderBy);
 
-    // Update UI
     renderKPIs();
     renderMainContent();
     updateFilterSummary();
@@ -204,16 +206,11 @@ document.addEventListener('DOMContentLoaded', () => {
       const objetoB = (b.objetoCompra || '').toLowerCase();
 
       switch (orderBy) {
-        case 'valor-desc':
-          return valB - valA;
-        case 'valor-asc':
-          return valA - valB;
-        case 'orgao-asc':
-          return orgaoA.localeCompare(orgaoB);
-        case 'objeto-asc':
-          return objetoA.localeCompare(objetoB);
-        default:
-          return valB - valA;
+        case 'valor-desc': return valB - valA;
+        case 'valor-asc': return valA - valB;
+        case 'orgao-asc': return orgaoA.localeCompare(orgaoB);
+        case 'objeto-asc': return objetoA.localeCompare(objetoB);
+        default: return valB - valA;
       }
     });
   }
@@ -235,7 +232,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const totalValor = items.reduce((acc, curr) => acc + Number(curr.valorTotalEstimado || 0), 0);
     const mediaValor = totalValor / count;
     
-    // Maior Valor
     const maiorItem = [...items].sort((a, b) => Number(b.valorTotalEstimado || 0) - Number(a.valorTotalEstimado || 0))[0];
     const maxVal = Number(maiorItem.valorTotalEstimado || 0);
     const maiorOrgaoStr = maiorItem.orgaoEntidade?.razaoSocial || 'Não informado';
@@ -299,10 +295,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
         <div class="card-footer">
           <div class="card-footer-actions">
-            <button class="btn btn-secondary btn-card-action btn-detalhes" data-id="${item.numeroControlePNCP || Math.random()}">
-              Ver Detalhes
+            <button class="btn btn-secondary btn-card-action btn-detalhes">
+              💡 Ver Detalhes
             </button>
-            <a href="${linkPNCP}" target="_blank" rel="noopener" class="btn btn-primary btn-card-action">
+            <a href="${linkPNCP}" target="_blank" rel="noopener noreferrer" class="btn btn-primary btn-card-action">
               <span>Edital PNCP</span>
               <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
             </a>
@@ -310,10 +306,7 @@ document.addEventListener('DOMContentLoaded', () => {
         </div>
       `;
 
-      // Event listener for details
-      const btnDetalhes = card.querySelector('.btn-detalhes');
-      btnDetalhes.addEventListener('click', () => openModal(item));
-
+      card.querySelector('.btn-detalhes').addEventListener('click', () => openModal(item));
       elements.gridView.appendChild(card);
     });
   }
@@ -337,8 +330,8 @@ document.addEventListener('DOMContentLoaded', () => {
         <td><span class="badge-modalidade">${modalidadeNome}</span></td>
         <td>
           <div style="display:flex; gap:6px;">
-            <button class="btn btn-secondary btn-table-detalhes" style="padding:4px 8px; font-size:0.78rem;">Ver</button>
-            <a href="${linkPNCP}" target="_blank" rel="noopener" class="btn btn-primary" style="padding:4px 8px; font-size:0.78rem;">Edital</a>
+            <button class="btn btn-secondary btn-table-detalhes" style="padding:4px 8px; font-size:0.78rem;">💡 Detalhes</button>
+            <a href="${linkPNCP}" target="_blank" rel="noopener noreferrer" class="btn btn-primary" style="padding:4px 8px; font-size:0.78rem;">Edital</a>
           </div>
         </td>
       `;
@@ -348,20 +341,34 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  // --- Modal Operations ---
+  // --- Modal Operations & Tab Switching ---
   function openModal(item) {
     state.selectedItem = item;
 
+    // Reset tab to "Entendimento Simples"
+    switchTab('simples');
+
     const modalidadeNome = modalidadesMap[item.modalidadeId || item.codigoModalidadeContratacao] || 'Dispensa de Licitação';
+    const valorFormatted = formatCurrency(item.valorTotalEstimado);
+
+    // Populate Tab 1 (Entendimento Simples)
+    const summaryData = generateSimpleSummary(item);
+    elements.modalResumoExplicativo.innerHTML = summaryData.explanation;
+    elements.modalFinalidadeSimples.textContent = summaryData.category;
+    elements.modalValorSimples.textContent = valorFormatted;
+    elements.modalExplicacaoModalidade.textContent = summaryData.modalidadeExplanation;
+
+    // Populate Tab 2 (Ficha Técnica)
     elements.modalBadgeModalidade.textContent = modalidadeNome;
     elements.modalOrgao.textContent = item.orgaoEntidade?.razaoSocial || 'Órgão Não Informado';
-    elements.modalValor.textContent = formatCurrency(item.valorTotalEstimado);
+    elements.modalValor.textContent = valorFormatted;
     elements.modalObjeto.textContent = item.objetoCompra || 'Descrição indisponível no momento.';
     elements.modalCNPJ.textContent = item.orgaoEntidade?.cnpj || 'Não informado';
     elements.modalNumeroControle.textContent = item.numeroControlePNCP || 'N/A';
     elements.modalAno.textContent = item.anoCompra || item.anoProcesso || new Date().getFullYear();
     elements.modalDataPublicacao.textContent = formatDate(item.dataPublicacaoPncp || item.createdAt);
 
+    // Set correct edital link
     const link = getPNCPEditalLink(item);
     elements.btnOpenPNCP.setAttribute('href', link);
 
@@ -369,10 +376,99 @@ document.addEventListener('DOMContentLoaded', () => {
     elements.detailsModal.setAttribute('aria-hidden', 'false');
   }
 
+  function switchTab(tabName) {
+    if (tabName === 'simples') {
+      elements.btnTabSimples.classList.add('active');
+      elements.btnTabTecnica.classList.remove('active');
+      elements.tabSimples.classList.remove('hidden');
+      elements.tabTecnica.classList.add('hidden');
+    } else {
+      elements.btnTabTecnica.classList.add('active');
+      elements.btnTabSimples.classList.remove('active');
+      elements.tabTecnica.classList.remove('hidden');
+      elements.tabSimples.classList.add('hidden');
+    }
+  }
+
   function closeModal() {
     elements.detailsModal.classList.add('hidden');
     elements.detailsModal.setAttribute('aria-hidden', 'true');
     state.selectedItem = null;
+  }
+
+  // --- Plain Language Summary Generator ---
+  function generateSimpleSummary(item) {
+    const objeto = (item.objetoCompra || '').trim();
+    const orgao = item.orgaoEntidade?.razaoSocial || 'Órgão Público';
+    const valorFormatted = formatCurrency(item.valorTotalEstimado);
+    const codigoMod = String(item.modalidadeId || item.codigoModalidadeContratacao || '8');
+
+    // Categorization logic
+    let category = 'Prestação de Serviços Generalizada';
+    const objLower = objeto.toLowerCase();
+
+    if (objLower.includes('médico') || objLower.includes('saúde') || objLower.includes('exame') || objLower.includes('medicamento')) {
+      category = 'Saúde & Medicina';
+    } else if (objLower.includes('internet') || objLower.includes('informática') || objLower.includes('software') || objLower.includes('computador')) {
+      category = 'Tecnologia & Telecomunicações';
+    } else if (objLower.includes('veículo') || objLower.includes('seguro') || objLower.includes('transporte') || objLower.includes('ônibus')) {
+      category = 'Veículos & Transportes';
+    } else if (objLower.includes('manutenção') || objLower.includes('reforma') || objLower.includes('obra') || objLower.includes('equipamento')) {
+      category = 'Manutenção & Engenharia';
+    } else if (objLower.includes('turístico') || objLower.includes('evento') || objLower.includes('pesquisa') || objLower.includes('cultural')) {
+      category = 'Serviços Especiais & Eventos';
+    }
+
+    // Modalidade explanation
+    let modalidadeExplanation = 'Contratação direta sem concorrência tradicional por valor limite (Art. 75 da Lei 14.133/21).';
+    if (codigoMod === '6') {
+      modalidadeExplanation = 'Pregão Eletrônico aberto para propostas competitivas no portal de compras.';
+    } else if (codigoMod === '9') {
+      modalidadeExplanation = 'Inexigibilidade de licitação devido à inviabilidade de competição ou notória especialização.';
+    }
+
+    // Cleaned up simple text
+    const cleanObjeto = objeto.replace(/^\[.*?\]\s*-\s*/, ''); // removes prefixes like [LICITANET] -
+    const explanation = `O órgão <strong>${escapeHTML(orgao)}</strong> abriu este processo para a contratação de: <em>"${escapeHTML(cleanObjeto)}"</em>. O valor máximo reservado para o pagamento é de <strong>${valorFormatted}</strong>.`;
+
+    return {
+      explanation,
+      category,
+      modalidadeExplanation
+    };
+  }
+
+  // --- Fixed PNCP Link Builder ---
+  function getPNCPEditalLink(item) {
+    if (item.linkPNCP && item.linkPNCP.startsWith('http')) {
+      // Check if raw link contains slash in bad place
+      const directMatch = item.linkPNCP.match(/editais\/(\d{14})-(\d+)-(\d+)\/(\d{4})/);
+      if (directMatch) {
+        const cnpj = directMatch[1];
+        const sequencial = parseInt(directMatch[3], 10);
+        const ano = directMatch[4];
+        return `https://pncp.gov.br/app/editais/${cnpj}/${ano}/${sequencial}`;
+      }
+    }
+
+    if (item.numeroControlePNCP) {
+      // Format: "32165706000108-1-000087/2026"
+      const match = item.numeroControlePNCP.match(/^(\d{14})-(\d+)-(\d+)\/(\d{4})$/);
+      if (match) {
+        const cnpj = match[1];
+        const sequencial = parseInt(match[3], 10);
+        const ano = match[4];
+        return `https://pncp.gov.br/app/editais/${cnpj}/${ano}/${sequencial}`;
+      }
+      return `https://pncp.gov.br/app/editais?q=${encodeURIComponent(item.numeroControlePNCP)}`;
+    }
+
+    if (item.orgaoEntidade?.cnpj) {
+      const cleanCnpj = item.orgaoEntidade.cnpj.replace(/\D/g, '');
+      return `https://pncp.gov.br/app/editais?q=${cleanCnpj}`;
+    }
+
+    return 'https://pncp.gov.br/app/editais';
   }
 
   // --- Event Listeners Setup ---
@@ -402,7 +498,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // Selects
     elements.modalidadeSelect.addEventListener('change', (e) => {
       state.filters.modalidade = e.target.value;
-      fetchPNCPData(); // Refetch for modalidade filter
+      fetchPNCPData();
     });
 
     elements.orderSelect.addEventListener('change', (e) => {
@@ -421,7 +517,6 @@ document.addEventListener('DOMContentLoaded', () => {
       state.filters.valorMax = val;
       elements.valorRangeLabel.textContent = val >= 1000000 ? 'Sem limite' : formatCurrency(val);
       
-      // Update chips active state
       elements.presetChips.forEach(chip => {
         if (Number(chip.getAttribute('data-value')) === val) {
           chip.classList.add('active');
@@ -491,6 +586,10 @@ document.addEventListener('DOMContentLoaded', () => {
       elements.exportMenu.classList.add('hidden');
     });
 
+    // Modal Tabs
+    elements.btnTabSimples.addEventListener('click', () => switchTab('simples'));
+    elements.btnTabTecnica.addEventListener('click', () => switchTab('tecnica'));
+
     // Modal Close handlers
     elements.btnCloseModal.addEventListener('click', closeModal);
     elements.detailsModal.addEventListener('click', (e) => {
@@ -507,7 +606,7 @@ document.addEventListener('DOMContentLoaded', () => {
       if (state.selectedItem) {
         const link = getPNCPEditalLink(state.selectedItem);
         navigator.clipboard.writeText(link).then(() => {
-          showToast('Link do edital copiado com sucesso!');
+          showToast('Link do edital copiado para a área de transferência!');
         }).catch(() => {
           showToast('Erro ao copiar link.');
         });
@@ -586,13 +685,6 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   // --- Helpers ---
-  function getPNCPEditalLink(item) {
-    if (item.numeroControlePNCP) {
-      return `https://pncp.gov.br/app/editais/${item.numeroControlePNCP}`;
-    }
-    return 'https://pncp.gov.br/app/editais';
-  }
-
   function formatCurrency(value) {
     const val = Number(value || 0);
     return `R$ ${val.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
@@ -653,7 +745,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }, 3000);
   }
 
-  // --- Fallback Mock Data (In case PNCP API blocks CORS in local static files) ---
+  // --- Fallback Mock Data ---
   function getMockData() {
     return [
       {
