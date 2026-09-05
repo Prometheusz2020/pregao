@@ -1,0 +1,345 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PNCP Scraper | Dashboard de Licitações e Oportunidades Públicas</title>
+  <meta name="description" content="Painel estruturado para consulta e monitoramento de oportunidades, dispensas de licitação e compras públicas do PNCP em tempo real.">
+  
+  <!-- Google Fonts: Plus Jakarta Sans & Inter -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap" rel="stylesheet">
+  
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="app-wrapper">
+    
+    <!-- Header / Navbar -->
+    <header class="app-header">
+      <div class="header-container">
+        <div class="brand">
+          <div class="brand-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+              <polyline points="14 2 14 8 20 8"></polyline>
+              <line x1="16" y1="13" x2="8" y2="13"></line>
+              <line x1="16" y1="17" x2="8" y2="17"></line>
+              <polyline points="10 9 9 9 8 9"></polyline>
+            </svg>
+          </div>
+          <div class="brand-text">
+            <h1>PNCP <span>Dashboard</span></h1>
+            <p>Portal Nacional de Contratas Públicas</p>
+          </div>
+        </div>
+
+        <div class="header-actions">
+          <div class="status-pill" id="apiStatusPill">
+            <span class="status-dot green"></span>
+            <span class="status-text">Conectado ao PNCP</span>
+          </div>
+
+          <button id="btnRefresh" class="btn btn-secondary" title="Recarregar dados do PNCP">
+            <svg class="spin-icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="23 4 23 10 17 10"></polyline>
+              <polyline points="1 20 1 14 7 14"></polyline>
+              <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path>
+            </svg>
+            <span>Atualizar API</span>
+          </button>
+
+          <div class="export-dropdown">
+            <button id="btnExportToggle" class="btn btn-primary">
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                <polyline points="7 10 12 15 17 10"></polyline>
+                <line x1="12" y1="15" x2="12" y2="3"></line>
+              </svg>
+              <span>Exportar</span>
+            </button>
+            <div class="export-menu hidden" id="exportMenu">
+              <button id="btnExportCSV" class="export-item">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+                <span>Exportar CSV (Planilha)</span>
+              </button>
+              <button id="btnExportJSON" class="export-item">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 18l6-6-6-6"/><path d="M8 6l-6 6 6 6"/></svg>
+                <span>Exportar JSON</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <!-- Main Content Area -->
+    <main class="main-content">
+      
+      <!-- Hero / Introduction Banner -->
+      <section class="hero-banner">
+        <div class="hero-content">
+          <h2>Painel de Oportunidades & Licitações</h2>
+          <p>Explore dispensas de licitação e compras públicas federais, estaduais e municipais com dados estruturados e valores formatados.</p>
+        </div>
+        <div class="hero-meta">
+          <span class="meta-tag" id="lastUpdatedTag">📅 Atualizado hoje</span>
+          <span class="meta-tag highlight" id="modalidadeTag">⚡ Dispensa de Licitação (Art. 75)</span>
+        </div>
+      </section>
+
+      <!-- KPI Summary Cards -->
+      <section class="kpi-grid">
+        <div class="kpi-card">
+          <div class="kpi-header">
+            <span class="kpi-title">Total Encontrado</span>
+            <div class="kpi-icon blue">
+              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
+            </div>
+          </div>
+          <div class="kpi-value" id="kpiTotalItens">--</div>
+          <div class="kpi-subtext" id="kpiTotalSubtext">Oportunidades ativas</div>
+        </div>
+
+        <div class="kpi-card highlight-green">
+          <div class="kpi-header">
+            <span class="kpi-title">Valor Total Estimado</span>
+            <div class="kpi-icon green">
+              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+            </div>
+          </div>
+          <div class="kpi-value green-text" id="kpiValorTotal">R$ 0,00</div>
+          <div class="kpi-subtext">Soma das contratações exibidas</div>
+        </div>
+
+        <div class="kpi-card">
+          <div class="kpi-header">
+            <span class="kpi-title">Valor Médio</span>
+            <div class="kpi-icon purple">
+              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="M18 17V9"/><path d="M13 17V5"/><path d="M8 17v-3"/></svg>
+            </div>
+          </div>
+          <div class="kpi-value" id="kpiValorMedio">R$ 0,00</div>
+          <div class="kpi-subtext">Média por licitação</div>
+        </div>
+
+        <div class="kpi-card">
+          <div class="kpi-header">
+            <span class="kpi-title">Maior Valor</span>
+            <div class="kpi-icon amber">
+              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+            </div>
+          </div>
+          <div class="kpi-value amber-text" id="kpiMaiorValor">R$ 0,00</div>
+          <div class="kpi-subtext" id="kpiMaiorOrgao">Maior teto individual</div>
+        </div>
+      </section>
+
+      <!-- Controls & Filter Toolbar -->
+      <section class="filter-panel">
+        <div class="filter-row primary-filters">
+          
+          <!-- Search input -->
+          <div class="filter-group search-group">
+            <label for="searchInput">Buscar por Serviço, Objeto ou Órgão</label>
+            <div class="search-input-wrapper">
+              <svg class="search-icon" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+              <input type="text" id="searchInput" placeholder="Ex: serviço, reforma, informática, manutenção..." autocomplete="off">
+              <button id="btnClearSearch" class="btn-clear-search hidden" title="Limpar busca">&times;</button>
+            </div>
+          </div>
+
+          <!-- Modalidade select -->
+          <div class="filter-group">
+            <label for="modalidadeSelect">Modalidade</label>
+            <select id="modalidadeSelect">
+              <option value="8" selected>Dispensa de Licitação (8)</option>
+              <option value="all">Todas as Modalidades</option>
+              <option value="6">Pregão - Eletrônico (6)</option>
+              <option value="9">Inexigibilidade (9)</option>
+              <option value="4">Concorrência (4)</option>
+            </select>
+          </div>
+
+          <!-- Ordenação select -->
+          <div class="filter-group">
+            <label for="orderSelect">Ordenar por</label>
+            <select id="orderSelect">
+              <option value="valor-desc" selected>Maior Valor (R$)</option>
+              <option value="valor-asc">Menor Valor (R$)</option>
+              <option value="orgao-asc">Órgão (A-Z)</option>
+              <option value="objeto-asc">Objeto (A-Z)</option>
+            </select>
+          </div>
+
+          <!-- View Mode Switcher -->
+          <div class="filter-group view-switcher-group">
+            <label>Visualização</label>
+            <div class="view-toggle-buttons">
+              <button id="btnViewGrid" class="btn-toggle active" title="Visualização em Grade (Cards)">
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+                <span>Cards</span>
+              </button>
+              <button id="btnViewTable" class="btn-toggle" title="Visualização em Tabela">
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+                <span>Tabela</span>
+              </button>
+            </div>
+          </div>
+
+        </div>
+
+        <div class="filter-row secondary-filters">
+          
+          <!-- Valor Maximo Slider -->
+          <div class="filter-group slider-group">
+            <div class="slider-header">
+              <label for="valorRange">Teto de Valor Estimado:</label>
+              <span class="range-value-badge" id="valorRangeLabel">R$ 500.000,00</span>
+            </div>
+            <input type="range" id="valorRange" min="5000" max="1000000" step="5000" value="500000">
+            <div class="range-presets">
+              <button class="preset-chip" data-value="25000">R$ 25k</button>
+              <button class="preset-chip" data-value="50000">R$ 50k</button>
+              <button class="preset-chip" data-value="100000">R$ 100k</button>
+              <button class="preset-chip active" data-value="500000">R$ 500k</button>
+              <button class="preset-chip" data-value="1000000">Sem limite (1M+)</button>
+            </div>
+          </div>
+
+          <!-- Data Filter -->
+          <div class="filter-group date-group">
+            <label for="dateSelect">Data de Publicação</label>
+            <select id="dateSelect">
+              <option value="today" selected>Hoje (Mais Recente)</option>
+              <option value="yesterday">Ontem</option>
+              <option value="7days">Últimos 7 Dias</option>
+            </select>
+          </div>
+
+          <div class="filter-summary">
+            <span id="resultsCountBadge" class="results-badge">Exibindo 0 itens</span>
+            <button id="btnResetFilters" class="btn-text">Resetar filtros</button>
+          </div>
+
+        </div>
+      </section>
+
+      <!-- Main Results Display -->
+      <section class="results-section">
+        
+        <!-- Loading State Skeleton -->
+        <div id="loadingState" class="skeleton-grid">
+          <div class="skeleton-card"></div>
+          <div class="skeleton-card"></div>
+          <div class="skeleton-card"></div>
+          <div class="skeleton-card"></div>
+          <div class="skeleton-card"></div>
+          <div class="skeleton-card"></div>
+        </div>
+
+        <!-- Empty State -->
+        <div id="emptyState" class="empty-state hidden">
+          <div class="empty-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/><line x1="8" y1="11" x2="14" y2="11"/></svg>
+          </div>
+          <h3>Nenhuma oportunidade encontrada</h3>
+          <p>Nenhum item atende aos filtros atuais. Tente expandir o teto de valor ou alterar o termo de busca.</p>
+          <button id="btnEmptyReset" class="btn btn-secondary">Limpar todos os filtros</button>
+        </div>
+
+        <!-- Cards View -->
+        <div id="gridView" class="cards-grid"></div>
+
+        <!-- Table View -->
+        <div id="tableView" class="table-container hidden">
+          <table class="opportunities-table">
+            <thead>
+              <tr>
+                <th>Órgão Publicador</th>
+                <th>Objeto da Compra</th>
+                <th class="text-right">Valor Estimado</th>
+                <th>Modalidade</th>
+                <th>Ações</th>
+              </tr>
+            </thead>
+            <tbody id="tableBody"></tbody>
+          </table>
+        </div>
+
+      </section>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="app-footer">
+      <div class="footer-container">
+        <p>PNCP Scraper &amp; Visualizer &bull; Fonte oficial: <a href="https://pncp.gov.br" target="_blank" rel="noopener">pncp.gov.br</a></p>
+        <p class="footer-subtext">Desenvolvido com JavaScript Nativo e Vanilla CSS</p>
+      </div>
+    </footer>
+
+    <!-- Details Modal Overlay -->
+    <div id="detailsModal" class="modal-overlay hidden" aria-hidden="true">
+      <div class="modal-card">
+        <header class="modal-header">
+          <div class="modal-title-group">
+            <span class="badge-modalidade" id="modalBadgeModalidade">Dispensa de Licitação</span>
+            <h3 id="modalOrgao">Nome do Órgão</h3>
+          </div>
+          <button id="btnCloseModal" class="btn-close-modal" title="Fechar modal">&times;</button>
+        </header>
+
+        <div class="modal-body">
+          <div class="modal-price-box">
+            <span class="price-label">Valor Total Estimado</span>
+            <span class="price-value" id="modalValor">R$ 0,00</span>
+          </div>
+
+          <div class="modal-section">
+            <label class="modal-section-label">Objeto da Contratação</label>
+            <p class="modal-objeto-text" id="modalObjeto">Descrição detalhada do objeto...</p>
+          </div>
+
+          <div class="modal-grid-info">
+            <div class="info-item">
+              <span class="info-label">CNPJ do Órgão</span>
+              <span class="info-value" id="modalCNPJ">--</span>
+            </div>
+            <div class="info-item">
+              <span class="info-label">Número de Controle PNCP</span>
+              <span class="info-value" id="modalNumeroControle">--</span>
+            </div>
+            <div class="info-item">
+              <span class="info-label">Ano do Processo</span>
+              <span class="info-value" id="modalAno">--</span>
+            </div>
+            <div class="info-item">
+              <span class="info-label">Data de Publicação</span>
+              <span class="info-value" id="modalDataPublicacao">--</span>
+            </div>
+          </div>
+        </div>
+
+        <footer class="modal-footer">
+          <button id="btnCopyLink" class="btn btn-secondary">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+            <span>Copiar Link</span>
+          </button>
+          <a id="btnOpenPNCP" href="#" target="_blank" rel="noopener" class="btn btn-primary">
+            <span>Abrir no Portal PNCP</span>
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+          </a>
+        </footer>
+      </div>
+    </div>
+
+    <!-- Toast Notification Container -->
+    <div id="toastContainer" class="toast-container"></div>
+
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>

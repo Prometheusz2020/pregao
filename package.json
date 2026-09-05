@@ -1,0 +1,14 @@
+{
+  "name": "pncp-scraper",
+  "version": "1.0.0",
+  "description": "PNCP Scraper & Interactive Visualizer Dashboard",
+  "main": "busca.js",
+  "scripts": {
+    "start": "npx -y serve .",
+    "test": "node busca.js"
+  },
+  "keywords": ["pncp", "scraper", "licitacoes", "dashboard", "brasil"],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs"
+}
